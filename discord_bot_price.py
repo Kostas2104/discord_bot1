@@ -27,7 +27,7 @@ async def price(ctx, coin: str):
             coin_data = data[0]  # First item in the list
             symbol = coin_data.get('symbol', '').upper()
             price = coin_data.get('current_price', 0)
-            await ctx.send(f'The current price of {symbol} is ${price:.2f} USD")
+            await ctx.send(f'The current price of {symbol} is ${price:.2f} USD')
         else:
             await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
     else:
