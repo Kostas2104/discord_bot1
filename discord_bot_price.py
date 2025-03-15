@@ -68,8 +68,17 @@ async def mc(ctx, coin: str):
         if "data" in data and coin in data["data"]:
             coin_data = data["data"][coin]["quote"]["USD"]
             market_cap = coin_data.get("market_cap", 0)
+# Formatting Market Cap
+            if market_cap >= 1_000_000_000_000:  # Over 1 Trillion
+                mc_str = f"{market_cap / 1_000_000_000_000:.2f}T"
+            elif market_cap >= 1_000_000_000:  # Over 1 Billion
+                mc_str = f"{market_cap / 1_000_000_000:.2f}B"
+            elif market_cap >= 1_000_000:  # Over 1 Million
+                mc_str = f"{market_cap / 1_000_000:.2f}M"
+            else:
+                mc_str = f"${market_cap:,.2f}"  # Regular format with commas
 
-            await ctx.send(f'The market cap of {coin} is ${market_cap:,.2f} USD')
+            await ctx.send(f'The market cap of {coin} is {mc_str} USD')
         else:
             await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
     else:
