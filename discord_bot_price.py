@@ -110,8 +110,8 @@ async def mc(ctx, symbol: str):
 
     if coin_data:
         market_cap = coin_data["quote"]["USD"]["market_cap"]
-formatted_mc = format_large_number(market_cap)
-await ctx.send(f"The market cap of {symbol.upper()} is **${formatted_mc} USD**")
+        formatted_mc = format_large_number(market_cap)
+        await ctx.send(f"The market cap of {symbol.upper()} is **${formatted_mc} USD**")
 
     else:
         await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
