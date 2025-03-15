@@ -83,7 +83,7 @@ async def mc(ctx, symbol: str):
 
 # Add Coins to Portfolio
 @bot.command()
-async def buy(ctx, symbol: str, amount: float):
+async def buy(ctx, symbol: str, amount2: float):
     user_id = ctx.author.id
     symbol = symbol.upper()
 
