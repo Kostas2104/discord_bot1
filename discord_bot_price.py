@@ -17,16 +17,17 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode="require")
 
-# Format numbers for display
+# Format numbers for display with commas
 def format_large_number(value):
     if value >= 1_000_000_000_000:
-        return f"{value / 1_000_000_000_000:.2f}T"
+        return f"{value / 1_000_000_000_000:.2f}T".replace(",", "")  # Trillions
     elif value >= 1_000_000_000:
-        return f"{value / 1_000_000_000:.2f}B"
+        return f"{value / 1_000_000_000:.2f}B".replace(",", "")  # Billions
     elif value >= 1_000_000:
-        return f"{value / 1_000_000:.2f}M"
+        return f"{value / 1_000_000:.2f}M".replace(",", "")  # Millions
     else:
-        return f"{value:.2f}"
+        return f"{value:,.2f}"  # Numbers under a million with commas
+
 
 # Get coin data from CoinMarketCap
 def get_coin_data(symbol):
@@ -86,16 +87,15 @@ Use `!helpme` anytime to see this list again.
 async def price(ctx, symbol: str):
     coin_data = get_coin_data(symbol.upper())
 
-    if coin_data:
-        price = coin_data["quote"]["USD"]["price"]
-        if price >= 0.1:
-            price_str = f"{price:.2f}"
-        elif price >= 0.001:
-            price_str = f"{price:.4f}"
-        elif price >= 0.0000001:
-            price_str = f"{price:.8f}"
-        else:
-            price_str = f"{price:.11f}"
+    if price >= 0.1:
+    price_str = f"{price:,.2f}"  # Format with commas
+elif price >= 0.001:
+    price_str = f"{price:,.4f}"  # Format with commas
+elif price >= 0.0000001:
+    price_str = f"{price:,.8f}"  # Format with commas
+else:
+    price_str = f"{price:,.11f}"  # Format with commas
+
 
         await ctx.send(f'The current price of {symbol.upper()} is **${price_str} USD**')
     else:
@@ -108,8 +108,9 @@ async def mc(ctx, symbol: str):
 
     if coin_data:
         market_cap = coin_data["quote"]["USD"]["market_cap"]
-        formatted_mc = format_large_number(market_cap)
-        await ctx.send(f"The market cap of {symbol.upper()} is **${formatted_mc} USD**")
+formatted_mc = format_large_number(market_cap)
+await ctx.send(f"The market cap of {symbol.upper()} is **${formatted_mc} USD**")
+
     else:
         await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
 
