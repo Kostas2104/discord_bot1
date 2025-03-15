@@ -87,14 +87,16 @@ Use `!helpme` anytime to see this list again.
 async def price(ctx, symbol: str):
     coin_data = get_coin_data(symbol.upper())
 
-    if price >= 0.1:
-    price_str = f"{price:,.2f}"  # Format with commas
-elif price >= 0.001:
-    price_str = f"{price:,.4f}"  # Format with commas
-elif price >= 0.0000001:
-    price_str = f"{price:,.8f}"  # Format with commas
-else:
-    price_str = f"{price:,.11f}"  # Format with commas
+    if coin_data:
+        price = coin_data["quote"]["USD"]["price"]
+        if price >= 0.1:
+            price_str = f"{price:,.2f}"  # Format with commas
+        elif price >= 0.001:
+            price_str = f"{price:,.4f}"  # Format with commas
+        elif price >= 0.0000001:
+            price_str = f"{price:,.8f}"  # Format with commas
+        else:
+            price_str = f"{price:,.11f}"  # Format with commas
 
 
         await ctx.send(f'The current price of {symbol.upper()} is **${price_str} USD**')
