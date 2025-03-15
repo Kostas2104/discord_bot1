@@ -7,7 +7,7 @@ from discord.ext import commands
 TOKEN = os.getenv("TOKEN")  # Fetch token from environment variable
 CMC_API_KEY = os.getenv("CMC_API_KEY")  # Replace with your CoinMarketCap API key
 DATABASE_URL = os.getenv("DATABASE_URL")  # PostgreSQL Database URL
-API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+CMC_API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
 
 intents = discord.Intents.default()
 intents.message_content = True  # Enable message content intent
