@@ -31,8 +31,10 @@ async def price(ctx, coin: str):
                 price_str = f"{price:.2f}"  # 2 decimal places
             elif price >= 0.0001:
                 price_str = f"{price:.4f}"  # 4 decimal places
-            else:
+            elif:
                 price_str = f"{price:.8f}"  # 8 decimal places
+            else:
+                price_str = f"{price:.11f}" # 11 decimal places
             await ctx.send(f'The current price of {symbol} is ${price_str} USD')
         else:
             await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
