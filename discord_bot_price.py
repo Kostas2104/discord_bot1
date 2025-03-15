@@ -4,7 +4,7 @@ import os  # Import the os module
 from discord.ext import commands
 
 TOKEN = os.getenv("TOKEN")  # Fetch token from environment variable
-CMC_API_KEY = "a8fd7838-7f35-4f17-8e5a-c8af39ef18ba"  # Replace with your CoinMarketCap API key
+CMC_API_KEY = os.getenv("CMC_API_KEY")  # Replace with your CoinMarketCap API key
 API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
 
 intents = discord.Intents.default()
