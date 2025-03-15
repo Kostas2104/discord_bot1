@@ -90,16 +90,16 @@ async def buy(ctx, symbol: str, amount: float):
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO portfolio (user_id, coin, amount)
+        INSERT INTO portfolio (user_id, coin, amount2)
         VALUES (%s, %s, %s)
         ON CONFLICT (user_id, coin)
-        DO UPDATE SET amount = portfolio.amount + EXCLUDED.amount
-    """, (user_id, symbol, amount))
+        DO UPDATE SET amount2 = portfolio.amount2 + EXCLUDED.amount2
+    """, (user_id, symbol, amount2))
     conn.commit()
     cur.close()
     conn.close()
 
-    await ctx.send(f"Added {amount} {symbol} to your portfolio!")
+    await ctx.send(f"Added {amount2} {symbol} to your portfolio!")
 
 # Show Portfolio Worth
 @bot.command()
@@ -107,7 +107,7 @@ async def portfolio(ctx):
     user_id = ctx.author.id
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT coin, amount FROM portfolio WHERE user_id = %s", (user_id,))
+    cur.execute("SELECT coin, amount2 FROM portfolio WHERE user_id = %s", (user_id,))
     holdings = cur.fetchall()
     cur.close()
     conn.close()
@@ -123,9 +123,9 @@ async def portfolio(ctx):
         coin_data = get_coin_data(symbol)
         if coin_data:
             price = coin_data["quote"]["USD"]["price"]
-            worth = price * amount
+            worth = price * amount2
             total_value += worth
-            message += f"- {symbol}: {amount} ({format_large_number(worth)} USD)\n"
+            message += f"- {symbol}: {amount2} ({format_large_number(worth)} USD)\n"
     
     message += f"\n**Total Portfolio Value: ${format_large_number(total_value)} USD**"
     await ctx.send(message)
