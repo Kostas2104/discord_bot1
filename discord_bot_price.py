@@ -47,17 +47,39 @@ async def on_ready():
 @bot.command()
 async def helpme(ctx):
     help_message = """
-**💰 Crypto Commands**
-- `!price <symbol>` → Get the current price of a cryptocurrency.
-- `!mc <symbol>` → Get the market cap of a cryptocurrency.
+**📌 Available Commands:**
+    
+**💰 Crypto Price & Market Cap**
+- `!price <symbol>`  
+  *Get the current price of a cryptocurrency.*  
+  **Example:** `!price BTC` → Shows Bitcoin's price.  
+   
+- `!mc <symbol>`  
+  *Get the market cap of a cryptocurrency.*  
+  **Example:** `!mc ETH` → Shows Ethereum's market cap.  
 
-**📂 Wallet Commands**
-- `!new_wallet <symbol> <amount>` → Create a new wallet with initial amount.
-- `!add_funds <wallet_id> <amount>` → Add funds to an existing wallet.
-- `!wallets` → View all your wallets.
-- `!wallet_value` → Check the value of your wallets in USD.
+**📂 Wallet Management**
+- `!new_wallet <symbol> <amount>`  
+  *Create a new wallet for a cryptocurrency and add an initial amount.*  
+  **Example:** `!new_wallet BTC 0.5` → Creates a Bitcoin wallet with 0.5 BTC.  
+
+- `!add_funds <wallet_id> <amount>`  
+  *Add funds to an existing wallet.*  
+  **Example:** `!add_funds 1 0.3` → Adds 0.3 to Wallet #1.  
+
+- `!wallets`  
+  *View all wallets associated with your account.*  
+  **Example:** `!wallets` → Lists all your wallets.  
+
+- `!wallet_value`  
+  *Check the total USD value of all your wallets based on current prices.*  
+  **Example:** `!wallet_value` → Displays total portfolio value in USD.  
+
+**ℹ️ Need Help?**  
+Use `!helpme` anytime to see this list again.  
 """
     await ctx.send(help_message)
+
 
 # 💰 Get Crypto Price
 @bot.command()
