@@ -50,4 +50,30 @@ async def price(ctx, coin: str):
     else:
         await ctx.send("Error fetching data from CoinMarketCap. Try again later.")
 
+@bot.command()
+async def mc(ctx, coin: str):
+    """Fetch the market cap of a cryptocurrency."""
+    coin = coin.upper()  # CoinMarketCap uses uppercase symbols
+
+    headers = {
+        "Accepts": "application/json",
+        "X-CMC_PRO_API_KEY": CMC_API_KEY,
+    }
+
+    params = {"symbol": coin, "convert": "USD"}
+    response = requests.get(API_URL, headers=headers, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        if "data" in data and coin in data["data"]:
+            coin_data = data["data"][coin]["quote"]["USD"]
+            market_cap = coin_data.get("market_cap", 0)
+
+            await ctx.send(f'The market cap of {coin} is ${market_cap:,.2f} USD')
+        else:
+            await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
+    else:
+        await ctx.send("Error fetching data from CoinMarketCap. Try again later.")
+
+
 bot.run(TOKEN)
