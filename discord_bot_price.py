@@ -29,9 +29,9 @@ async def price(ctx, coin: str):
             price = coin_data.get('current_price', 0)
             if price >= 0.1:
                 price_str = f"{price:.2f}"  # 2 decimal places
-            elif price >= 0.0001:
+            elif price >= 0.001:
                 price_str = f"{price:.4f}"  # 4 decimal places
-            elif price >= 0.00000001:
+            elif price >= 0.0000001:
                 price_str = f"{price:.8f}"  # 8 decimal places
             else:
                 price_str = f"{price:.11f}" # 11 decimal places
