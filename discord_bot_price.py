@@ -82,8 +82,9 @@ Use `!helpme` anytime to see this list again.
 """
     await ctx.send(help_message)
 
-# 📌 CDC Wallet Titles
-CDC_WALLET_TITLES = ["3DA3", "677F", "825B", "Burn"]
+# 📌 CDC Wallet Titles (excluding Burn)
+CDC_WALLET_TITLES = ["3DA3", "677F", "825B"]
+BURN_WALLET_TITLE = "Burn"
 
 # 📌 Format number to Trillions (T)
 def format_trillions(value):
@@ -92,16 +93,22 @@ def format_trillions(value):
 # 📌 Get Crypto Balances for CDC Wallets
 @bot.command()
 async def cdc(ctx):
-    balances = get_caw_balances()
-    
-    if balances:
+    cdc_balances, burn_balance, cdc_total, cdc_percentage = get_caw_balances()
+
+    if cdc_balances:
         message = "**📊 CDC Wallet Balances:**\n"
-        total_balance = sum(balances)
         
-        for title, balance in zip(CDC_WALLET_TITLES, balances):
+        # Print individual CDC balances
+        for title, balance in zip(CDC_WALLET_TITLES, cdc_balances):
             message += f"- **{title}:** {format_trillions(balance)} CAW\n"
-        
-        message += f"\n**Total: {format_trillions(total_balance)} CAW**"
+
+        # Print CDC total and percentage
+        message += f"\n**Total CDC Holdings: {format_trillions(cdc_total)} CAW**"
+        message += f"\n**Percentage of Total Supply: {cdc_percentage:.4f}%**"
+
+        # Show Burn wallet separately
+        message += f"\n\n🔥 **{BURN_WALLET_TITLE}: {format_trillions(burn_balance)} CAW** 🔥"
+
         await ctx.send(message)
     else:
         await ctx.send("❌ Unable to fetch balances!")
