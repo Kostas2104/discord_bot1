@@ -1,5 +1,8 @@
 import requests
+import os 
 from config import API_KEY_CRONOSCAN, CAW_CONTRACT_ADDRESS, CAW_ADDRESSES
+
+API_KEY_CRONOSCAN = os.getenv("API_KEY_CRONOSCAN")  # CoinMarketCap API Key
 
 DECIMALS = 18
 TOTAL_SUPPLY = 777_777_777_777_777  # 777.777 Trillion CAW
