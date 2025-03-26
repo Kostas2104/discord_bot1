@@ -1,37 +1,30 @@
-import discord
-import os
-from discord.ext import commands
-from get_balances import get_caw_balances
+import requests
+from config import API_KEY_CRONOSCAN, CAW_CONTRACT_ADDRESS, CAW_ADDRESSES
 
-TOKEN = os.getenv("TOKEN")  # Discord Bot Token
+DECIMALS = 18
 
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+# Define address titles
+ADDRESS_TITLES = [
+    "3DA3",
+    "677F",
+    "825B",
+    "Burn"
+]
 
-# 📌 CDC Wallet Titles
-CDC_WALLET_TITLES = ["3DA3", "677F", "825B", "Burn"]
+def get_token_balance(address):
+    api_url = f"https://api.cronoscan.com/api?module=account&action=tokenbalance&contractaddress={CAW_CONTRACT_ADDRESS}&address={address}&tag=latest&apikey={API_KEY_CRONOSCAN}"
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        data = response.json()
+        if data["status"] == "1":
+            return int(data["result"]) / 10**DECIMALS
+        else:
+            print(f"Error fetching balance for {address}: {data['message']}")
+            return 0  # Return 0 to avoid sum errors
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+        return 0  # Return 0 to handle errors smoothly
 
-# 📌 Format number to Trillions (T)
-def format_trillions(value):
-    return f"{value / 1_000_000_000_000:.2f} T"
-
-# 📌 Get Crypto Balances for CDC Wallets
-@bot.command()
-async def cdc(ctx):
-    balances = get_caw_balances()
-    
-    if balances:
-        message = "**📊 CDC Wallet Balances:**\n"
-        total_balance = sum(balances)
-        
-        for title, balance in zip(CDC_WALLET_TITLES, balances):
-            message += f"- **{title}:** {format_trillions(balance)} CAW\n"
-        
-        message += f"\n**Total: {format_trillions(total_balance)} CAW**"
-        await ctx.send(message)
-    else:
-        await ctx.send("❌ Unable to fetch balances!")
-
-# 🟢 Run the Bot
-bot.run(TOKEN)
+def get_caw_balances():
+    return [get_token_balance(addr) for addr in CAW_ADDRESSES]  # Return list of balances
