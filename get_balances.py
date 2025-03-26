@@ -1,42 +1,37 @@
-import requests
-from config import API_KEY_CRONOSCAN, CAW_CONTRACT_ADDRESS, CAW_ADDRESSES
+import discord
+import os
+from discord.ext import commands
+from get_balances import get_caw_balances
 
-DECIMALS = 18
+TOKEN = os.getenv("TOKEN")  # Discord Bot Token
 
-# Define address titles
-address_titles = {
-    "0x25aA97464F38a1506a16160bbc03cfC6DD863da3": "3DA3",
-    "0x069E536d2429172e402A8c0DDCE822FC60a3677f": "677F",
-    "0x8995909DC0960FC9c75B6031D683124a4016825b": "825B",
-    "0x000000000000000000000000000000000000dead": "Burn"
-}
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-def get_token_balance(address):
-    api_url = f"https://api.cronoscan.com/api?module=account&action=tokenbalance&contractaddress={CAW_CONTRACT_ADDRESS}&address={address}&tag=latest&apikey={API_KEY_CRONOSCAN}"
-    try:
-        response = requests.get(api_url)
-        response.raise_for_status()
-        data = response.json()
-        if data["status"] == "1":
-            return int(data["result"]) / 10**DECIMALS
-        else:
-            print(f"Error fetching balance for {address}: {data['message']}")
-            return 0  # Return 0 to avoid sum errors
-    except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
-        return 0  # Return 0 to handle errors smoothly
+# 📌 CDC Wallet Titles
+CDC_WALLET_TITLES = ["3DA3", "677F", "825B", "Burn"]
 
-def get_caw_balances():
-    balances = {address_titles[addr]: get_token_balance(addr) for addr in CAW_ADDRESSES}
-    return balances
+# 📌 Format number to Trillions (T)
+def format_trillions(value):
+    return f"{value / 1_000_000_000_000:.2f} T"
 
-# Fetch balances
-balances = get_caw_balances()
+# 📌 Get Crypto Balances for CDC Wallets
+@bot.command()
+async def cdc(ctx):
+    balances = get_caw_balances()
+    
+    if balances:
+        message = "**📊 CDC Wallet Balances:**\n"
+        total_balance = sum(balances)
+        
+        for title, balance in zip(CDC_WALLET_TITLES, balances):
+            message += f"- **{title}:** {format_trillions(balance)} CAW\n"
+        
+        message += f"\n**Total: {format_trillions(total_balance)} CAW**"
+        await ctx.send(message)
+    else:
+        await ctx.send("❌ Unable to fetch balances!")
 
-# Print balances with titles
-print("CAW Balances:")
-for title, balance in balances.items():
-    print(f"{title}: {balance}")
-
-# Print total sum
-print(f"Total CAW: {sum(balances.values())}")
+# 🟢 Run the Bot
+bot.run(TOKEN)
