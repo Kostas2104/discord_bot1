@@ -1,6 +1,6 @@
 import requests
 import os 
-from config import API_KEY_CRONOSCAN, CAW_CONTRACT_ADDRESS, CAW_ADDRESSES
+from config import CAW_CONTRACT_ADDRESS, CAW_ADDRESSES
 
 API_KEY_CRONOSCAN = os.getenv("API_KEY_CRONOSCAN")  # CoinMarketCap API Key
 
