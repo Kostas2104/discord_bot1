@@ -3,6 +3,7 @@ import requests
 import os
 import psycopg2
 from discord.ext import commands
+from get_balances import get_caw_balances
 
 TOKEN = os.getenv("TOKEN")  # Discord Bot Token
 CMC_API_KEY = os.getenv("CMC_API_KEY")  # CoinMarketCap API Key
