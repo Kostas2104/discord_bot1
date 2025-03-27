@@ -60,13 +60,16 @@ async def helpme(ctx):
 - `!compare_cdc_<number>`  
   *Compares the latest CDC wallet balances with a specified number of entries back.*  
 
+- `!compare_cdc_last10`  
+  *Displays the last 10 records in a tabular format.*  
+
 **ℹ️ Need Help?**  
 Use `!helpme` anytime to see this list again.  
 """
     await ctx.send(help_message)
 
 # 📌 CDC Wallet Titles (excluding Burn)
-CDC_WALLET_TITLES = ["3DA3", "667F", "825B"]
+CDC_WALLET_TITLES = ["wallet_3da3", "wallet_667", "wallet_825b"]
 BURN_WALLET_TITLE = "Burn"
 
 # 📌 Format number to Trillions (T)
@@ -97,9 +100,9 @@ async def cdc(ctx):
         cur = conn.cursor()
         now = datetime.now()
         cur.execute("""
-            INSERT INTO caw_cdc ("wallet_3da3", "wallet_667", "wallet_825b", sum, date)
+            INSERT INTO caw_cdc (date, wallet_3da3, wallet_667, wallet_825b, sum)
             VALUES (%s, %s, %s, %s, %s)
-        """, (cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total, now.date()))
+        """, (now.date(), cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total))
         conn.commit()
         cur.close()
         conn.close()
@@ -110,50 +113,29 @@ async def cdc(ctx):
 
 # 📊 Compare CDC Wallets
 @bot.command()
-async def compare_cdc(ctx, entries_back: int = 1):
+async def compare_cdc_last10(ctx):
     conn = get_db_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT "wallet_3da3", "wallet_667", "wallet_825b", sum FROM caw_cdc
-        ORDER BY date DESC, time DESC
-        LIMIT %s
-    """, (entries_back + 1,))
+        SELECT date, wallet_3da3, wallet_667, wallet_825b, sum FROM caw_cdc
+        ORDER BY date DESC
+        LIMIT 10
+    """)
 
     records = cur.fetchall()
     cur.close()
     conn.close()
 
-    if len(records) < entries_back + 1:
-        await ctx.send("❌ Not enough records in the database to compare!")
-        return
-
-    latest = records[0]
-    previous = records[entries_back]
-    
-    message = "**📊 CDC Wallet Comparison:**\n"
-    for i, title in enumerate(CDC_WALLET_TITLES + ["Sum"]):
-        change = latest[i] - previous[i]
-        change_status = "📈 Increased" if change > 0 else "📉 Decreased" if change < 0 else "➖ No Change"
-        message += f"- **{title}:** {format_trillions(latest[i])} CAW ({change_status})\n"
-
+    message = "**📊 Last 10 CDC Wallet Records:**\n"
+    message += "```
+Date        | wallet_3da3 | wallet_667 | wallet_825b | Sum        \n"
+    message += "------------------------------------------------\n"
+    for record in records:
+        date, w3da3, w667, w825b, total = record
+        message += f"{date} | {format_trillions(w3da3)} | {format_trillions(w667)} | {format_trillions(w825b)} | {format_trillions(total)}\n"
+    message += "```"
     await ctx.send(message)
-
-# 💰 Get Crypto Price
-@bot.command()
-async def price(ctx, symbol: str):
-    coin_data = get_coin_data(symbol.upper())
-
-    if coin_data:
-        price = coin_data["quote"]["USD"]["price"]
-        if price >= 0.1:
-            price_str = f"{price:,.2f}"  # Format with commas
-        else:
-            price_str = f"{price:.8f}"  # Format with commas
-
-        await ctx.send(f'The current price of {symbol.upper()} is **${price_str} USD**')
-    else:
-        await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
 
 # 🟢 Run the Bot
 bot.run(TOKEN)
