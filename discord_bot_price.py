@@ -4,6 +4,7 @@ import os
 import psycopg2
 from discord.ext import commands
 from get_balances import get_caw_balances
+from datetime import datetime
 
 TOKEN = os.getenv("TOKEN")  # Discord Bot Token
 CMC_API_KEY = os.getenv("CMC_API_KEY")  # CoinMarketCap API Key
@@ -29,18 +30,6 @@ def format_large_number(value):
     else:
         return f"{value:,.2f}"  # Numbers under a million with commas
 
-
-# Get coin data from CoinMarketCap
-def get_coin_data(symbol):
-    headers = {"X-CMC_PRO_API_KEY": CMC_API_KEY}
-    params = {"symbol": symbol, "convert": "USD"}
-    response = requests.get(CMC_API_URL, headers=headers, params=params)
-
-    if response.status_code == 200:
-        data = response.json()
-        return data["data"].get(symbol.upper(), {})
-    return {}
-
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
@@ -60,22 +49,10 @@ async def helpme(ctx):
   *Get the market cap of a cryptocurrency.*  
   **Example:** `!mc ETH` → Shows Ethereum's market cap.  
 
-**📂 Wallet Management**
-- `!new_wallet <symbol> <amount>`  
-  *Create a new wallet for a cryptocurrency and add an initial amount.*  
-  **Example:** `!new_wallet BTC 0.5` → Creates a Bitcoin wallet with 0.5 BTC.  
-
-- `!add_funds <wallet_id> <amount>`  
-  *Add funds to an existing wallet.*  
-  **Example:** `!add_funds 1 0.3` → Adds 0.3 to Wallet #1.  
-
-- `!wallets`  
-  *View all wallets associated with your account.*  
-  **Example:** `!wallets` → Lists all your wallets.  
-
-- `!wallet_value`  
-  *Check the total USD value of all your wallets based on current prices.*  
-  **Example:** `!wallet_value` → Displays total portfolio value in USD.  
+**📂 CDC Wallet Balances**
+- `!cdc`  
+  *Fetches and displays the latest CDC wallet balances and saves them to the database.*  
+  **Example:** `!cdc` → Shows balances and records them in the database.  
 
 **ℹ️ Need Help?**  
 Use `!helpme` anytime to see this list again.  
@@ -90,7 +67,7 @@ BURN_WALLET_TITLE = "Burn"
 def format_trillions(value):
     return f"{value / 1_000_000_000_000:.2f} T"
 
-# 📌 Get Crypto Balances for CDC Wallets
+# 📌 Get Crypto Balances for CDC Wallets and Save to Database
 @bot.command()
 async def cdc(ctx):
     cdc_balances, burn_balance, cdc_total, cdc_percentage = get_caw_balances()
@@ -109,10 +86,21 @@ async def cdc(ctx):
         # Show Burn wallet separately
         message += f"\n\n🔥 **{BURN_WALLET_TITLE}: {format_trillions(burn_balance)} CAW** 🔥"
 
+        # Save data to PostgreSQL
+        conn = get_db_connection()
+        cur = conn.cursor()
+        now = datetime.now()
+        cur.execute("""
+            INSERT INTO caw_cdc ("3da3", "667F", "825b", sum, date, time)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total, now.date(), now.time()))
+        conn.commit()
+        cur.close()
+        conn.close()
+
         await ctx.send(message)
     else:
         await ctx.send("❌ Unable to fetch balances!")
-
 
 # 💰 Get Crypto Price
 @bot.command()
@@ -130,7 +118,6 @@ async def price(ctx, symbol: str):
         else:
             price_str = f"{price:,.11f}"  # Format with commas
 
-
         await ctx.send(f'The current price of {symbol.upper()} is **${price_str} USD**')
     else:
         await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
@@ -144,104 +131,8 @@ async def mc(ctx, symbol: str):
         market_cap = coin_data["quote"]["USD"]["market_cap"]
         formatted_mc = format_large_number(market_cap)
         await ctx.send(f"The market cap of {symbol.upper()} is **${formatted_mc} USD**")
-
     else:
         await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
-
-# 📂 Create a New Wallet
-@bot.command()
-async def new_wallet(ctx, symbol: str, amount: float):
-    user_id = ctx.author.id
-    symbol = symbol.upper()
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO wallets (user_id, coin, amount)
-        VALUES (%s, %s, %s)
-        RETURNING wallet_id
-    """, (user_id, symbol, amount))
-    
-    wallet_id = cur.fetchone()[0]
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    await ctx.send(f"✅ Created new wallet #{wallet_id} with {amount} {symbol}.")
-
-# ➕ Add Funds to an Existing Wallet
-@bot.command()
-async def add_funds(ctx, wallet_id: int, amount: float):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    cur.execute("""
-        UPDATE wallets SET amount = amount + %s
-        WHERE wallet_id = %s
-        RETURNING amount, coin
-    """, (amount, wallet_id))
-
-    result = cur.fetchone()
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    if result:
-        updated_amount, symbol = result
-        await ctx.send(f"✅ Updated wallet #{wallet_id}. New balance: {updated_amount} {symbol}.")
-    else:
-        await ctx.send("❌ Wallet not found!")
-
-# 📜 View All Wallets
-@bot.command()
-async def wallets(ctx):
-    user_id = ctx.author.id
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT wallet_id, coin, amount FROM wallets WHERE user_id = %s", (user_id,))
-    user_wallets = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    if not user_wallets:
-        await ctx.send("🛑 You have no wallets.")
-        return
-
-    message = "**📂 Your Wallets:**\n"
-    for wallet_id, symbol, amount in user_wallets:
-        message += f"- **Wallet #{wallet_id}**: {amount} {symbol}\n"
-
-    await ctx.send(message)
-
-# 💵 Check Wallet Value in USD
-@bot.command()
-async def wallet_value(ctx):
-    user_id = ctx.author.id
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT wallet_id, coin, amount FROM wallets WHERE user_id = %s", (user_id,))
-    user_wallets = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    if not user_wallets:
-        await ctx.send("🛑 You have no wallets.")
-        return
-
-    total_value = 0
-    message = "**💵 Your Wallet Value:**\n"
-    
-    for wallet_id, symbol, amount in user_wallets:
-        coin_data = get_coin_data(symbol)
-        if coin_data:
-            price = coin_data["quote"]["USD"]["price"]
-            worth = price * amount
-            total_value += worth
-            message += f"- **Wallet #{wallet_id}**: {amount} {symbol} = **${format_large_number(worth)} USD**\n"
-    
-    message += f"\n**Total Portfolio Value: ${format_large_number(total_value)} USD**"
-    await ctx.send(message)
 
 # 🟢 Run the Bot
 bot.run(TOKEN)
