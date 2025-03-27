@@ -128,13 +128,13 @@ async def compare_cdc_last10(ctx):
     conn.close()
 
     message = "**📊 Last 10 CDC Wallet Records:**\n"
-    message += "```
-    Date    | wallet_3da3 | wallet_667 | wallet_825b | Sum        \n"
+    message += "```\nDate        | 3DA3       | 667F       | 825B       | Sum        \n"
     message += "------------------------------------------------\n"
     for record in records:
-        date, w3da3, w667, w825b, total = record
-        message += f"{date} | {format_trillions(w3da3)} | {format_trillions(w667)} | {format_trillions(w825b)} | {format_trillions(total)}\n"
+        date, w3da3, w667f, w825b, total = record
+        message += f"{date} | {format_trillions(w3da3)} | {format_trillions(w667f)} | {format_trillions(w825b)} | {format_trillions(total)}\n"
     message += "```"
+
     await ctx.send(message)
 
 # 🟢 Run the Bot
