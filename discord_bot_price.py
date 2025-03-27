@@ -91,9 +91,9 @@ async def cdc(ctx):
         cur = conn.cursor()
         now = datetime.now()
         cur.execute("""
-            INSERT INTO caw_cdc (wallet_3da3, wallet_667, wallet_825b, sum, date, time)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total, now.date(), now.time()))
+            INSERT INTO caw_cdc (wallet_3da3, wallet_667, wallet_825b, sum, date)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total, now.date()))
         conn.commit()
         cur.close()
         conn.close()
