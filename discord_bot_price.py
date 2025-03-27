@@ -54,13 +54,19 @@ async def helpme(ctx):
   *Fetches and displays the latest CDC wallet balances and saves them to the database.*  
   **Example:** `!cdc` → Shows balances and records them in the database.  
 
+- `!compare_cdc`  
+  *Compares the latest CDC wallet balances with the previous record.*  
+
+- `!compare_cdc_<number>`  
+  *Compares the latest CDC wallet balances with a specified number of entries back.*  
+
 **ℹ️ Need Help?**  
 Use `!helpme` anytime to see this list again.  
 """
     await ctx.send(help_message)
 
 # 📌 CDC Wallet Titles (excluding Burn)
-CDC_WALLET_TITLES = ["3DA3", "677F", "825B"]
+CDC_WALLET_TITLES = ["3DA3", "667F", "825B"]
 BURN_WALLET_TITLE = "Burn"
 
 # 📌 Format number to Trillions (T)
@@ -91,9 +97,9 @@ async def cdc(ctx):
         cur = conn.cursor()
         now = datetime.now()
         cur.execute("""
-            INSERT INTO caw_cdc (wallet_3da3, wallet_667, wallet_825b, sum, date)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total, now.date()))
+            INSERT INTO caw_cdc ("3da3", "667F", "825b", sum, date, time)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total, now.date(), now.time()))
         conn.commit()
         cur.close()
         conn.close()
@@ -101,6 +107,37 @@ async def cdc(ctx):
         await ctx.send(message)
     else:
         await ctx.send("❌ Unable to fetch balances!")
+
+# 📊 Compare CDC Wallets
+@bot.command()
+async def compare_cdc(ctx, entries_back: int = 1):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT "3da3", "667F", "825b", sum FROM caw_cdc
+        ORDER BY date DESC, time DESC
+        LIMIT %s
+    """, (entries_back + 1,))
+
+    records = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    if len(records) < entries_back + 1:
+        await ctx.send("❌ Not enough records in the database to compare!")
+        return
+
+    latest = records[0]
+    previous = records[entries_back]
+    
+    message = "**📊 CDC Wallet Comparison:**\n"
+    for i, title in enumerate(CDC_WALLET_TITLES + ["Sum"]):
+        change = latest[i] - previous[i]
+        change_status = "📈 Increased" if change > 0 else "📉 Decreased" if change < 0 else "➖ No Change"
+        message += f"- **{title}:** {format_trillions(latest[i])} CAW ({change_status})\n"
+
+    await ctx.send(message)
 
 # 💰 Get Crypto Price
 @bot.command()
@@ -111,26 +148,10 @@ async def price(ctx, symbol: str):
         price = coin_data["quote"]["USD"]["price"]
         if price >= 0.1:
             price_str = f"{price:,.2f}"  # Format with commas
-        elif price >= 0.001:
-            price_str = f"{price:,.4f}"  # Format with commas
-        elif price >= 0.0000001:
-            price_str = f"{price:,.8f}"  # Format with commas
         else:
-            price_str = f"{price:,.11f}"  # Format with commas
+            price_str = f"{price:.8f}"  # Format with commas
 
         await ctx.send(f'The current price of {symbol.upper()} is **${price_str} USD**')
-    else:
-        await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
-
-# 📊 Get Market Cap
-@bot.command()
-async def mc(ctx, symbol: str):
-    coin_data = get_coin_data(symbol.upper())
-
-    if coin_data:
-        market_cap = coin_data["quote"]["USD"]["market_cap"]
-        formatted_mc = format_large_number(market_cap)
-        await ctx.send(f"The market cap of {symbol.upper()} is **${formatted_mc} USD**")
     else:
         await ctx.send("Invalid cryptocurrency symbol or data unavailable.")
 
