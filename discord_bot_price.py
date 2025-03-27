@@ -129,7 +129,7 @@ async def compare_cdc_last10(ctx):
 
     message = "**📊 Last 10 CDC Wallet Records:**\n"
     message += "```
-Date        | wallet_3da3 | wallet_667 | wallet_825b | Sum        \n"
+    Date    | wallet_3da3 | wallet_667 | wallet_825b | Sum        \n"
     message += "------------------------------------------------\n"
     for record in records:
         date, w3da3, w667, w825b, total = record
