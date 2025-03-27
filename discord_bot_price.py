@@ -97,7 +97,7 @@ async def cdc(ctx):
         cur = conn.cursor()
         now = datetime.now()
         cur.execute("""
-            INSERT INTO caw_cdc ("3da3", "667F", "825b", sum, date, time)
+            INSERT INTO caw_cdc ("wallet_3da3", "wallet_667", "wallet_825b", sum, date, time)
             VALUES (%s, %s, %s, %s, %s, %s)
         """, (cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total, now.date(), now.time()))
         conn.commit()
@@ -115,7 +115,7 @@ async def compare_cdc(ctx, entries_back: int = 1):
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT "3da3", "667F", "825b", sum FROM caw_cdc
+        SELECT "wallet_3da3", "wallet_667", "wallet_825b", sum FROM caw_cdc
         ORDER BY date DESC, time DESC
         LIMIT %s
     """, (entries_back + 1,))
