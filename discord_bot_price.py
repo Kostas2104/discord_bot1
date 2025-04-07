@@ -170,7 +170,7 @@ def get_gateio_caw_data():
 def get_ascendex_caw_data():
     """Retrieves the ask and bid price of CAW/USDT from AscendEx with 11 decimal places."""
     base_url = "https://ascendex.com/api/pro/v1"
-    symbol = "CAWUSDT"  # Corrected symbol
+    symbol = "$CAW/USDT"  # Corrected symbol
 
     try:
         ticker_endpoint = f"{base_url}/spot/ticker?symbol={symbol}"
