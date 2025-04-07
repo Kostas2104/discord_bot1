@@ -232,40 +232,40 @@ async def exchanges(ctx):
     # Potential Arbitrage Calculation
     message += "\n--- Potential Arbitrage Opportunity (for 2 Billion CAW) ---\n"
 
-    if gateio_buy_price and ascendex_sell_price:
-        gateio_buy_price_float = float(gateio_buy_price)
-        ascendex_sell_price_float = float(ascendex_sell_price)
-        if gateio_buy_price_float < ascendex_sell_price_float:
-            cost_gateio = arbitrage_amount * gateio_buy_price_float
-            revenue_ascendex = arbitrage_amount * ascendex_sell_price_float
-            profit = revenue_ascendex - cost_gateio
-            message += "Buy on Gate.io, sell on AscendEx:\n"
-            message += f"  Buy Price on Gate.io: {gateio_buy_price}\n"
-            message += f"  Sell Price on AscendEx: {ascendex_sell_price}\n"
-            message += f"  Cost to buy: {cost_gateio:.8f} USDT\n"
-            message += f"  Revenue from selling: {revenue_ascendex:.8f} USDT\n"
-            message += f"  Potential Profit (without fees): {profit:.8f} USDT\n"
-        else:
-            message += "No direct arbitrage (Buy Gate.io < Sell AscendEx) at this moment.\n"
-
-    if ascendex_buy_price and gateio_sell_price:
-        ascendex_buy_price_float = float(ascendex_buy_price)
+    if gateio_sell_price and ascendex_buy_price:
         gateio_sell_price_float = float(gateio_sell_price)
-        if ascendex_buy_price_float < gateio_sell_price_float:
-            cost_ascendex = arbitrage_amount * ascendex_buy_price_float
-            revenue_gateio = arbitrage_amount * gateio_sell_price_float
-            profit = revenue_gateio - cost_ascendex
-            message += "\nBuy on AscendEx, sell on Gate.io:\n"
-            message += f"  Buy Price on AscendEx: {ascendex_buy_price}\n"
-            message += f"  Sell Price on Gate.io: {gateio_sell_price}\n"
-            message += f"  Cost to buy: {cost_ascendex:.8f} USDT\n"
-            message += f"  Revenue from selling: {revenue_gateio:.8f} USDT\n"
-            message += f"  Potential Profit (without fees): {profit:.8f} USDT\n"
+        ascendex_buy_price_float = float(ascendex_buy_price)
+        if gateio_sell_price_float < ascendex_buy_price_float:
+            cost_gateio = arbitrage_amount * gateio_sell_price_float
+            revenue_ascendex = arbitrage_amount * ascendex_buy_price_float
+            profit = revenue_ascendex - cost_gateio
+            print("Buy on Gate.io, sell on AscendEx:")
+            print(f"  Buy Price on Gate.io: {gateio_sell_price}")
+            print(f"  Sell Price on AscendEx: {ascendex_buy_price}")
+            print(f"  Cost to buy {arbitrage_amount} CAW on Gate.io: {cost_gateio:.8f} USDT")
+            print(f"  Revenue from selling {arbitrage_amount} CAW on AscendEx: {revenue_ascendex:.8f} USDT")
+            print(f"  Potential Profit (without fees): {profit:.8f} USDT")
         else:
-            message += "No direct arbitrage (Buy AscendEx < Sell Gate.io) at this moment.\n"
+            print("No direct arbitrage opportunity (Buy Gate.io -> Sell AscendEx)at this moment.")
+
+    if ascendex_sell_price and gateio_buy_price:
+        ascendex_sell_price_float = float(ascendex_sell_price)
+        gateio_buy_price_float = float(gateio_buy_price)
+        if ascendex_sell_price_float < gateio_buy_price_float:
+            cost_ascendex = arbitrage_amount * ascendex_sell_price_float
+            revenue_gateio = arbitrage_amount * gateio_buy_price_float
+            profit = revenue_gateio - cost_ascendex
+            print("\nBuy on AscendEx, sell on Gate.io:")
+            print(f"  Buy Price on AscendEx: {ascendex_sell_price}")
+            print(f"  Sell Price on Gate.io: {gateio_buy_price}")
+            print(f"  Cost to buy {arbitrage_amount} CAW on AscendEx: {cost_ascendex:.8f} USDT")
+            print(f"  Revenue from selling {arbitrage_amount} CAW on Gate.io: {revenue_gateio:.8f} USDT")
+            print(f"  Potential Profit (without fees): {profit:.8f} USDT")
+        else:
+            print("No direct arbitrage opportunity (Buy AscendEx -> Sell Gate.io) at this moment.")
 
     if not gateio_buy_price or not ascendex_sell_price or not ascendex_buy_price or not gateio_sell_price:
-        message += "Could not perform arbitrage calculation due to missing price data.\n"
+        print("Could not perform arbitrage calculation due to missing price data.")
 
     await ctx.send(message)
 
