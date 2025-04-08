@@ -222,9 +222,9 @@ def get_crypto_com_caw_data():
 @bot.command()
 async def ex(ctx):
     """Fetches and compares the ask and bid prices for CAW/USDT on Gate.io, AscendEx, and Crypto.com."""
-    gateio_data = await fetch_gateio_caw_data()
-    ascendex_data = await fetch_ascendex_caw_data()
-    crypto_com_data = await fetch_crypto_com_caw_data()
+    gateio_data = await get_gateio_caw_data()
+    ascendex_data = await get_ascendex_caw_data()
+    crypto_com_data = await get_crypto_com_caw_data()
     arbitrage_amount = 2000000000  # 2 billion CAW tokens
 
     message = "--- CAW/USDT Exchange Comparison ---\n"
