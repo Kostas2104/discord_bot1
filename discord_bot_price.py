@@ -222,9 +222,9 @@ def get_crypto_com_caw_data():
 @bot.command()
 async def ex(ctx):
     """Fetches and compares the ask and bid prices for CAW/USDT on Gate.io, AscendEx, and Crypto.com."""
-    gateio_data = await bot.loop.run_in_executor(None, get_gateio_caw_data)
-    ascendex_data = await bot.loop.run_in_executor(None, get_ascendex_caw_data)
-    crypto_com_data = await bot.loop.run_in_executor(None, get_crypto_com_caw_data)
+    gateio_data = await fetch_gateio_caw_data()
+    ascendex_data = await fetch_ascendex_caw_data()
+    crypto_com_data = await fetch_crypto_com_caw_data()
     arbitrage_amount = 2000000000  # 2 billion CAW tokens
 
     message = "--- CAW/USDT Exchange Comparison ---\n"
@@ -254,6 +254,8 @@ async def ex(ctx):
     else:
         ascendex_buy_price = ascendex_data['buy_price']
         ascendex_sell_price = ascendex_data['sell_price']
+        message += f"  Selling Price (Ask): {ascendex_sell_price}\n"
+        message += f"  Buying Price (Bid): {ascendex_buy_price}\n"
         has_data = True
     message += "---------------------------------------\n"
 
@@ -266,6 +268,8 @@ async def ex(ctx):
     else:
         crypto_com_buy_price = crypto_com_data['buy_price']
         crypto_com_sell_price = crypto_com_data['sell_price']
+        message += f"  Selling Price (Ask): {crypto_com_sell_price}\n"
+        message += f"  Buying Price (Bid): {crypto_com_buy_price}\n"
         has_data = True
     message += "---------------------------------------\n"
 
