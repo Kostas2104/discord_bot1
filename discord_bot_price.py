@@ -80,6 +80,10 @@ BURN_WALLET_TITLE = "Burn"
 def format_trillions(value):
     return f"{value / 1_000_000_000_000:.2f} T"
 
+# 📌 Format number to Trillions (T)
+def format_billions(value):
+    return f"{value / 1_000_000_000:.2f} B"
+
 # 📌 Get Crypto Balances for CDC Wallets and Save to Database
 @bot.command()
 async def cdc(ctx):
@@ -289,11 +293,13 @@ async def ex(ctx):
                     message += f"Buy on {buy_exchange}, sell on {sell_exchange}:\n"
                     message += f"  Buy Price on {buy_exchange}: {sell_price}\n"
                     message += f"  Sell Price on {sell_exchange}: {buy_price}\n"
-                    message += f"  Cost to buy {arbitrage_amount} CAW: {cost:.2f} USDT\n"
-                    message += f"  Revenue from selling {arbitrage_amount} CAW: {revenue:.2f} USDT\n"
+                    message += f"  Cost to buy {format_billions(arbitrage_amount)} CAW: {cost:.2f} USDT\n"
+                    message += f"  Revenue from selling {format_billions(arbitrage_amount)} CAW: {revenue:.2f} USDT\n"
                     message += f"  Potential Profit (without fees): {profit:.2f} USDT\n"
+                    message += "---------------------------------------\n"
                 else:
-                    message += f"No direct arbitrage (Buy {buy_exchange} < Sell {sell_exchange}) at this moment.\n"
+                    message += f"No direct arbitrage (Buy from {buy_exchange} -> Sell to {sell_exchange}) at this moment.\n"
+                    message += "---------------------------------------\n"
             except ValueError:
                 message += f"Error converting price to float for arbitrage check between {buy_exchange} and {sell_exchange}.\n"
         else:
