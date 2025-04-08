@@ -64,8 +64,8 @@ async def helpme(ctx):
   *Displays the last 10 records in a tabular format.*
 
 **💱 Exchange Data**
-- `!exchanges`
-  *Fetches and compares the ask and bid prices for CAW/USDT on Gate.io and AscendEx.*
+- `!ex`
+  *Fetches and compares the ask and bid prices for CAW/USDT on Gate.io, AscendEx, and Crypto.com.*
 
 **ℹ️ Need Help?**
 Use `!helpme` anytime to see this list again.
@@ -156,7 +156,7 @@ def get_gateio_caw_data():
             ticker_info = data[0]
             ask = ticker_info.get('lowest_ask')
             bid = ticker_info.get('highest_bid')
-            return {"exchange": "Gate.io", "ask": f"{float(ask):.11f}" if ask else None, "bid": f"{float(bid):.11f}" if bid else None}
+            return {"exchange": "Gate.io", "buy_price": f"{float(bid):.11f}" if bid else None, "sell_price": f"{float(ask):.11f}" if ask else None}
         else:
             return {"exchange": "Gate.io", "error": f"Could not retrieve ticker data for {currency_pair}"}
 
@@ -182,7 +182,7 @@ def get_ascendex_caw_data():
             ticker_info = data['data']
             ask = ticker_info.get('ask')
             bid = ticker_info.get('bid')
-            return {"exchange": "AscendEx", "ask": f"{float(ask[0]):.11f}" if ask else None, "bid": f"{float(bid[0]):.11f}" if bid else None}
+            return {"exchange": "AscendEx", "buy_price": f"{float(bid[0]):.11f}" if bid else None, "sell_price": f"{float(ask[0]):.11f}" if ask else None}
         else:
             return {"exchange": "AscendEx", "error": f"Could not retrieve ticker data for {symbol}"}
 
@@ -193,11 +193,38 @@ def get_ascendex_caw_data():
     except Exception as e:
         return {"exchange": "AscendEx", "error": f"An unexpected error occurred: {e}"}
 
+def get_crypto_com_caw_data():
+    """Retrieves the ask and bid price of CAW_USDT from Crypto.com with 11 decimal places."""
+    base_url = "https://api.crypto.com/v2"
+    instrument_name = "CAW_USDT"
+
+    try:
+        ticker_endpoint = f"{base_url}/public/get-ticker?instrument_name={instrument_name}"
+        response = requests.get(ticker_endpoint)
+        response.raise_for_status()
+        data = response.json()
+
+        if data and data.get('result') and data['result'].get('data') and len(data['result']['data']) > 0:
+            ticker_info = data['result']['data'][0]
+            ask = ticker_info.get('a')
+            bid = ticker_info.get('b')
+            return {"exchange": "Crypto.com", "buy_price": f"{float(bid):.11f}" if bid else None, "sell_price": f"{float(ask):.11f}" if ask else None}
+        else:
+            return {"exchange": "Crypto.com", "error": f"Could not retrieve ticker data for {instrument_name}"}
+
+    except requests.exceptions.RequestException as e:
+        return {"exchange": "Crypto.com", "error": f"API request error: {e}"}
+    except json.JSONDecodeError as e:
+        return {"exchange": "Crypto.com", "error": f"JSON decoding error: {e}"}
+    except Exception as e:
+        return {"exchange": "Crypto.com", "error": f"An unexpected error occurred: {e}"}
+
 @bot.command()
-async def exchanges(ctx):
-    """Fetches and compares the ask and bid prices for CAW/USDT on Gate.io and AscendEx."""
+async def ex(ctx):
+    """Fetches and compares the ask and bid prices for CAW/USDT on Gate.io, AscendEx, and Crypto.com."""
     gateio_data = get_gateio_caw_data()
     ascendex_data = get_ascendex_caw_data()
+    crypto_com_data = get_crypto_com_caw_data()
     arbitrage_amount = 2000000000  # 2 billion CAW tokens
 
     message = "--- CAW/USDT Exchange Comparison ---\n"
@@ -207,11 +234,11 @@ async def exchanges(ctx):
     message += "**Gate.io:**\n"
     if "error" in gateio_data:
         message += f"  Error: {gateio_data['error']}\n"
-        gateio_buy_price = None
         gateio_sell_price = None
+        gateio_buy_price = None
     else:
-        gateio_sell_price = gateio_data['ask']
-        gateio_buy_price = gateio_data['bid']
+        gateio_buy_price = gateio_data['buy_price']
+        gateio_sell_price = gateio_data['sell_price']
         message += f"  Selling Price (Ask): {gateio_sell_price}\n"
         message += f"  Buying Price (Bid): {gateio_buy_price}\n"
     message += "---------------------------------------\n"
@@ -220,52 +247,57 @@ async def exchanges(ctx):
     message += "**AscendEx:**\n"
     if "error" in ascendex_data:
         message += f"  Error: {ascendex_data['error']}\n"
-        ascendex_buy_price = None
         ascendex_sell_price = None
+        ascendex_buy_price = None
     else:
-        ascendex_sell_price = ascendex_data['ask']
-        ascendex_buy_price = ascendex_data['bid']
+        ascendex_buy_price = ascendex_data['buy_price']
+        ascendex_sell_price = ascendex_data['sell_price']
         message += f"  Selling Price (Ask): {ascendex_sell_price}\n"
         message += f"  Buying Price (Bid): {ascendex_buy_price}\n"
     message += "---------------------------------------\n"
 
-    # Potential Arbitrage Calculation
+    # Crypto.com Output
+    message += "**Crypto.com:**\n"
+    if "error" in crypto_com_data:
+        message += f"  Error: {crypto_com_data['error']}\n"
+        crypto_com_sell_price = None
+        crypto_com_buy_price = None
+    else:
+        crypto_com_buy_price = crypto_com_data['buy_price']
+        crypto_com_sell_price = crypto_com_data['sell_price']
+        message += f"  Selling Price (Ask): {crypto_com_sell_price}\n"
+        message += f"  Buying Price (Bid): {crypto_com_buy_price}\n"
+    message += "---------------------------------------\n"
+
+    # Comparison and Potential Arbitrage
     message += "\n--- Potential Arbitrage Opportunity (for 2 Billion CAW) ---\n"
 
-    if gateio_sell_price and ascendex_buy_price:
-        gateio_sell_price_float = float(gateio_sell_price)
-        ascendex_buy_price_float = float(ascendex_buy_price)
-        if gateio_sell_price_float < ascendex_buy_price_float:
-            cost_gateio = arbitrage_amount * gateio_sell_price_float
-            revenue_ascendex = arbitrage_amount * ascendex_buy_price_float
-            profit = revenue_ascendex - cost_gateio
-            print("Buy on Gate.io, sell on AscendEx:")
-            print(f"  Buy Price on Gate.io: {gateio_sell_price}")
-            print(f"  Sell Price on AscendEx: {ascendex_buy_price}")
-            print(f"  Cost to buy {arbitrage_amount} CAW on Gate.io: {cost_gateio:.8f} USDT")
-            print(f"  Revenue from selling {arbitrage_amount} CAW on AscendEx: {revenue_ascendex:.8f} USDT")
-            print(f"  Potential Profit (without fees): {profit:.8f} USDT")
+    def check_arbitrage(buy_exchange, sell_price, sell_exchange, buy_price):
+        if sell_price and buy_price:
+            sell_price_float = float(sell_price)
+            buy_price_float = float(buy_price)
+            if sell_price_float < buy_price_float:
+                cost = arbitrage_amount * sell_price_float
+                revenue = arbitrage_amount * buy_price_float
+                profit = revenue - cost
+                message += f"Buy on {buy_exchange}, sell on {sell_exchange}:\n"
+                message += f"  Buy Price on {buy_exchange}: {sell_price}\n"
+                message += f"  Sell Price on {sell_exchange}: {buy_price}\n"
+                message += f"  Cost to buy {arbitrage_amount} CAW: {cost:.2f} USDT\n"
+                message += f"  Revenue from selling {arbitrage_amount} CAW: {revenue:.2f} USDT\n"
+                message += f"  Potential Profit (without fees): {profit:.2f} USDT\n"
+            else:
+                message += f"No direct arbitrage (Buy {buy_exchange} < Sell {sell_exchange}) at this moment.\n"
         else:
-            print("No direct arbitrage opportunity (Buy Gate.io -> Sell AscendEx)at this moment.")
+            message += f"Could not check arbitrage between {buy_exchange} and {sell_exchange} due to missing price data.\n"
 
-    if ascendex_sell_price and gateio_buy_price:
-        ascendex_sell_price_float = float(ascendex_sell_price)
-        gateio_buy_price_float = float(gateio_buy_price)
-        if ascendex_sell_price_float < gateio_buy_price_float:
-            cost_ascendex = arbitrage_amount * ascendex_sell_price_float
-            revenue_gateio = arbitrage_amount * gateio_buy_price_float
-            profit = revenue_gateio - cost_ascendex
-            print("\nBuy on AscendEx, sell on Gate.io:")
-            print(f"  Buy Price on AscendEx: {ascendex_sell_price}")
-            print(f"  Sell Price on Gate.io: {gateio_buy_price}")
-            print(f"  Cost to buy {arbitrage_amount} CAW on AscendEx: {cost_ascendex:.8f} USDT")
-            print(f"  Revenue from selling {arbitrage_amount} CAW on Gate.io: {revenue_gateio:.8f} USDT")
-            print(f"  Potential Profit (without fees): {profit:.8f} USDT")
-        else:
-            print("No direct arbitrage opportunity (Buy AscendEx -> Sell Gate.io) at this moment.")
-
-    if not gateio_buy_price or not ascendex_sell_price or not ascendex_buy_price or not gateio_sell_price:
-        print("Could not perform arbitrage calculation due to missing price data.")
+    message += "\n--- Arbitrage Opportunities ---\n"
+    check_arbitrage("Gate.io", gateio_sell_price, "AscendEx", ascendex_buy_price)
+    check_arbitrage("Gate.io", gateio_sell_price, "Crypto.com", crypto_com_buy_price)
+    check_arbitrage("AscendEx", ascendex_sell_price, "Gate.io", gateio_buy_price)
+    check_arbitrage("AscendEx", ascendex_sell_price, "Crypto.com", crypto_com_buy_price)
+    check_arbitrage("Crypto.com", crypto_com_sell_price, "Gate.io", gateio_buy_price)
+    check_arbitrage("Crypto.com", crypto_com_sell_price, "AscendEx", ascendex_buy_price)
 
     await ctx.send(message)
 
