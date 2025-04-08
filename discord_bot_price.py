@@ -222,13 +222,14 @@ def get_crypto_com_caw_data():
 @bot.command()
 async def ex(ctx):
     """Fetches and compares the ask and bid prices for CAW/USDT on Gate.io, AscendEx, and Crypto.com."""
-    gateio_data = get_gateio_caw_data()
-    ascendex_data = get_ascendex_caw_data()
-    crypto_com_data = get_crypto_com_caw_data()
+    gateio_data = await bot.loop.run_in_executor(None, get_gateio_caw_data)
+    ascendex_data = await bot.loop.run_in_executor(None, get_ascendex_caw_data)
+    crypto_com_data = await bot.loop.run_in_executor(None, get_crypto_com_caw_data)
     arbitrage_amount = 2000000000  # 2 billion CAW tokens
 
     message = "--- CAW/USDT Exchange Comparison ---\n"
     message += "---------------------------------------\n"
+    has_data = False  # Flag to check if any data was successfully fetched
 
     # Gate.io Output
     message += "**Gate.io:**\n"
@@ -241,6 +242,7 @@ async def ex(ctx):
         gateio_sell_price = gateio_data['sell_price']
         message += f"  Selling Price (Ask): {gateio_sell_price}\n"
         message += f"  Buying Price (Bid): {gateio_buy_price}\n"
+        has_data = True
     message += "---------------------------------------\n"
 
     # AscendEx Output
@@ -252,8 +254,7 @@ async def ex(ctx):
     else:
         ascendex_buy_price = ascendex_data['buy_price']
         ascendex_sell_price = ascendex_data['sell_price']
-        message += f"  Selling Price (Ask): {ascendex_sell_price}\n"
-        message += f"  Buying Price (Bid): {ascendex_buy_price}\n"
+        has_data = True
     message += "---------------------------------------\n"
 
     # Crypto.com Output
@@ -265,29 +266,32 @@ async def ex(ctx):
     else:
         crypto_com_buy_price = crypto_com_data['buy_price']
         crypto_com_sell_price = crypto_com_data['sell_price']
-        message += f"  Selling Price (Ask): {crypto_com_sell_price}\n"
-        message += f"  Buying Price (Bid): {crypto_com_buy_price}\n"
+        has_data = True
     message += "---------------------------------------\n"
 
     # Comparison and Potential Arbitrage
     message += "\n--- Potential Arbitrage Opportunity (for 2 Billion CAW) ---\n"
 
     def check_arbitrage(buy_exchange, sell_price, sell_exchange, buy_price):
+        nonlocal message
         if sell_price and buy_price:
-            sell_price_float = float(sell_price)
-            buy_price_float = float(buy_price)
-            if sell_price_float < buy_price_float:
-                cost = arbitrage_amount * sell_price_float
-                revenue = arbitrage_amount * buy_price_float
-                profit = revenue - cost
-                message += f"Buy on {buy_exchange}, sell on {sell_exchange}:\n"
-                message += f"  Buy Price on {buy_exchange}: {sell_price}\n"
-                message += f"  Sell Price on {sell_exchange}: {buy_price}\n"
-                message += f"  Cost to buy {arbitrage_amount} CAW: {cost:.2f} USDT\n"
-                message += f"  Revenue from selling {arbitrage_amount} CAW: {revenue:.2f} USDT\n"
-                message += f"  Potential Profit (without fees): {profit:.2f} USDT\n"
-            else:
-                message += f"No direct arbitrage (Buy {buy_exchange} < Sell {sell_exchange}) at this moment.\n"
+            try:
+                sell_price_float = float(sell_price)
+                buy_price_float = float(buy_price)
+                if sell_price_float < buy_price_float:
+                    cost = arbitrage_amount * sell_price_float
+                    revenue = arbitrage_amount * buy_price_float
+                    profit = revenue - cost
+                    message += f"Buy on {buy_exchange}, sell on {sell_exchange}:\n"
+                    message += f"  Buy Price on {buy_exchange}: {sell_price}\n"
+                    message += f"  Sell Price on {sell_exchange}: {buy_price}\n"
+                    message += f"  Cost to buy {arbitrage_amount} CAW: {cost:.2f} USDT\n"
+                    message += f"  Revenue from selling {arbitrage_amount} CAW: {revenue:.2f} USDT\n"
+                    message += f"  Potential Profit (without fees): {profit:.2f} USDT\n"
+                else:
+                    message += f"No direct arbitrage (Buy {buy_exchange} < Sell {sell_exchange}) at this moment.\n"
+            except ValueError:
+                message += f"Error converting price to float for arbitrage check between {buy_exchange} and {sell_exchange}.\n"
         else:
             message += f"Could not check arbitrage between {buy_exchange} and {sell_exchange} due to missing price data.\n"
 
@@ -299,7 +303,10 @@ async def ex(ctx):
     check_arbitrage("Crypto.com", crypto_com_sell_price, "Gate.io", gateio_buy_price)
     check_arbitrage("Crypto.com", crypto_com_sell_price, "AscendEx", ascendex_buy_price)
 
-    await ctx.send(message)
+    if has_data:
+        await ctx.send(message)
+    else:
+        await ctx.send("❌ Failed to fetch exchange data from all sources.")
 
 # 🟢 Run the Bot
 bot.run(TOKEN)
