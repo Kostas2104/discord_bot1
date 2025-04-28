@@ -73,8 +73,8 @@ Use `!helpme` anytime to see this list again.
     await ctx.send(help_message)
 
 # 📌 CDC Wallet Titles (excluding Burn)
-CDC_WALLET_TITLES = ["wallet_3da3", "wallet_667", "wallet_825b"]
-BURN_WALLET_TITLE = "Burn"
+CDC_WALLET_TITLES = ["wallet_3da3", "wallet_677f", "wallet_825b"]
+BURN_WALLET_TITLE = "Cronos Burn"
 
 # 📌 Format number to Trillions (T)
 def format_trillions(value):
