@@ -12,6 +12,7 @@ ADDRESS_TITLES = [
     "3DA3",
     "677F",
     "825B",
+    "7fc6",
     "Burn"
 ]
 
