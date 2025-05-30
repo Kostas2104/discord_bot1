@@ -15,6 +15,8 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
+
+
 # Format numbers for display with commas
 def format_large_number(value):
     if value >= 1_000_000_000_000:
@@ -84,10 +86,42 @@ def format_billions(value):
 def format_millions(value):
     return f"{value / 1_000_000:.2f} M"
 
+
+# New function to get CAW Market Cap
+async def get_caw_market_cap():
+    headers = {
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': CMC_API_KEY,
+    }
+    parameters = {
+        'symbol': 'CAW',
+        'convert': 'USD'
+    }
+
+    try:
+        response = requests.get(CMC_API_URL, headers=headers, params=parameters)
+        response.raise_for_status() # Raise an HTTPError for bad responses (4xx or 5xx)
+        data = response.json()
+
+        # Navigate to the market_cap value
+        # The structure is data -> 'CAW' (or the symbol) -> 'quote' -> 'USD' -> 'market_cap'
+        market_cap = data['data']['CAW']['quote']['USD']['market_cap']
+        return market_cap
+    except requests.exceptions.RequestException as e:
+        print(f"CoinMarketCap API request failed: {e}")
+        return None
+    except KeyError as e:
+        print(f"Could not parse market cap from CoinMarketCap response. Missing key: {e}")
+        print(f"API Response: {data}") # Print full response for debugging
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred while fetching market cap: {e}")
+        return None
 # 📌 Get Crypto Balances for CDC Wallets and Save to Database
 @bot.command()
 async def cdc(ctx):
     cdc_balances, burn_balance, cdc_total, cdc_percentage = get_caw_balances()
+    caw_market_cap = await get_caw_market_cap() # Fetch market cap
 
     if cdc_balances:
         message = "**📊 CDC Wallet Balances:**\n"
@@ -100,13 +134,21 @@ async def cdc(ctx):
         message += f"\n**Total CDC Holdings: {format_trillions(cdc_total)} CAW**"
         message += f"\n**Percentage of Total Supply: {cdc_percentage:.4f}%**"
 
-        # Show Burn wallet separately
-        message += f"\n\n **{MC_TITLE}: {format_millions(burn_balance)} CAW** "
+        # Add CAW Market Cap
+        if caw_market_cap is not None:
+            message += f"\n\n**🌐 CAW Market Cap: ${format_large_number(caw_market_cap)} USD**"
+        else:
+            message += "\n\n**🌐 CAW Market Cap: N/A (Could not fetch)**"
+
+        # Retain Burn wallet display if it's relevant, otherwise remove or clarify MC_TITLE was a mistake
+        # Assuming burn_balance is not actually market cap and you still want to display it
+        message += f"\n**Burn Wallet Balance: {format_trillions(burn_balance)} CAW**"
 
 
         await ctx.send(message)
     else:
         await ctx.send("❌ Unable to fetch balances!")
+
 
 # 📊 Compare CDC Wallets
 @bot.command()
