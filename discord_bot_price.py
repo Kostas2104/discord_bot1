@@ -8,16 +8,12 @@ from datetime import datetime
 
 TOKEN = os.getenv("TOKEN")  # Discord Bot Token
 CMC_API_KEY = os.getenv("CMC_API_KEY")  # CoinMarketCap API Key
-DATABASE_URL = os.getenv("DATABASE_URL")  # PostgreSQL Database URL
 CMC_API_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Connect to PostgreSQL
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL, sslmode="require")
 
 # Format numbers for display with commas
 def format_large_number(value):
@@ -74,7 +70,7 @@ Use `!helpme` anytime to see this list again.
 
 # 📌 CDC Wallet Titles (excluding Burn)
 CDC_WALLET_TITLES = ["wallet_3da3", "wallet_677f", "wallet_825b", "wallet_7fc6"]
-BURN_WALLET_TITLE = "Cronos Burn"
+MC_TITLE = "Market Cap"
 
 # 📌 Format number to Trillions (T)
 def format_trillions(value):
@@ -83,6 +79,10 @@ def format_trillions(value):
 # 📌 Format number to Trillions (T)
 def format_billions(value):
     return f"{value / 1_000_000_000:.2f} B"
+
+# 📌 Format number to Trillions (T)
+def format_millions(value):
+    return f"{value / 1_000_000:.2f} M"
 
 # 📌 Get Crypto Balances for CDC Wallets and Save to Database
 @bot.command()
@@ -101,19 +101,8 @@ async def cdc(ctx):
         message += f"\n**Percentage of Total Supply: {cdc_percentage:.4f}%**"
 
         # Show Burn wallet separately
-        message += f"\n\n🔥 **{BURN_WALLET_TITLE}: {format_trillions(burn_balance)} CAW** 🔥"
+        message += f"\n\n **{MC_TITLE}: {format_millions(burn_balance)} CAW** "
 
-        # Save data to PostgreSQL
-        conn = get_db_connection()
-        cur = conn.cursor()
-        now = datetime.now()
-        cur.execute("""
-            INSERT INTO caw_cdc (date, wallet_3da3, wallet_667, wallet_825b, sum)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (now.date(), cdc_balances[0], cdc_balances[1], cdc_balances[2], cdc_total))
-        conn.commit()
-        cur.close()
-        conn.close()
 
         await ctx.send(message)
     else:
