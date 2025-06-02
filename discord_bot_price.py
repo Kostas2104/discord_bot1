@@ -131,8 +131,8 @@ async def cdc(ctx):
             message += f"- **{title}:** {format_trillions(balance)} CAW\n"
 
         # Print CDC total and percentage
-        message += f"\n**Total CDC Holdings: {format_trillions(cdc_total)} CAW**"
-        message += f"\n**Percentage of Total Supply: {cdc_percentage:.4f}%**"
+        message += f"\n**⚠️ Total CDC Holdings: {format_trillions(cdc_total)} CAW**"
+        message += f"\n**📈 Percentage of Total Supply: {cdc_percentage:.4f}%**"
 
         # Add CAW Market Cap
         if caw_market_cap is not None:
@@ -140,9 +140,6 @@ async def cdc(ctx):
         else:
             message += "\n\n**🌐 CAW Market Cap: N/A (Could not fetch)**"
 
-        # Retain Burn wallet display if it's relevant, otherwise remove or clarify MC_TITLE was a mistake
-        # Assuming burn_balance is not actually market cap and you still want to display it
-        message += f"\n**Burn Wallet Balance: {format_trillions(burn_balance)} CAW**"
 
 
         await ctx.send(message)
