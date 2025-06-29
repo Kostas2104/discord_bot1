@@ -121,7 +121,7 @@ async def get_caw_market_cap():
 # 📌 Get Crypto Balances for CDC Wallets and Save to Database
 @bot.command()
 async def cdc(ctx):
-    cdc_balances, burn_balance, cdc_total, cdc_percentage, gateio_balance = get_caw_balances()
+    cdc_balances, burn_balance, cdc_total, cdc_percentage, gateio_balances = get_caw_balances()
     caw_market_cap = await get_caw_market_cap() # Fetch market cap
 
     if cdc_balances:
@@ -136,7 +136,7 @@ async def cdc(ctx):
         message += f"\n**📈 Percentage of Total Supply: {cdc_percentage:.4f}%**"
 
         # Print individual GATE.IO balance
-        message += f"-\n**GATE.IO :** {format_trillions(gateio_balance)} CAW\n"
+        message += f"-\n**GATE.IO :** {format_trillions(gateio_balances)} CAW\n"
 
         # Add CAW Market Cap
         if caw_market_cap is not None:
