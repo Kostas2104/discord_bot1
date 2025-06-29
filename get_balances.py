@@ -14,7 +14,6 @@ ADDRESS_TITLES = [
     "825B",
     "7fc6",
     "Burn",
-    "92Fe"
 ]
 
 def get_token_balance(address):
