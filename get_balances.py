@@ -1,6 +1,6 @@
 import requests
 import os 
-from config import CAW_CONTRACT_ADDRESS, CAW_ADDRESSES
+from config import CAW_CONTRACT_ADDRESS, CAW_ADDRESSES, GATE_IO_ADDRESSES
 
 API_KEY_CRONOSCAN = os.getenv("API_KEY_CRONOSCAN")  # CoinMarketCap API Key
 
@@ -33,6 +33,7 @@ def get_token_balance(address):
 
 def get_caw_balances():
     balances = [get_token_balance(addr) for addr in CAW_ADDRESSES]
+    gateiobalances = [get_token_balance(gateioaddr) for gateioaddr in GATE_IO_ADDRESSES]
 
     # Separate Burn balance
     burn_balance = balances[-1]  # Last address (Burn)
@@ -44,4 +45,4 @@ def get_caw_balances():
     # Calculate percentage from total supply
     cdc_percentage = (cdc_total / TOTAL_SUPPLY) * 100
 
-    return cdc_balances, burn_balance, cdc_total, cdc_percentage
+    return cdc_balances, burn_balance, cdc_total, cdc_percentage, gateiobalances
