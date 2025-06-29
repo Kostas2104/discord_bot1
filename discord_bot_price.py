@@ -71,8 +71,9 @@ Use `!helpme` anytime to see this list again.
     await ctx.send(help_message)
 
 # 📌 CDC Wallet Titles (excluding Burn)
-CDC_WALLET_TITLES = ["wallet_3da3", "wallet_677f", "wallet_825b", "wallet_7fc6", "wallet_92Fe"]
+CDC_WALLET_TITLES = ["wallet_3da3", "wallet_677f", "wallet_825b", "wallet_7fc6"]
 MC_TITLE = "Market Cap"
+GATE_IO_TITLE = "wallet_92Fe"
 
 # 📌 Format number to Trillions (T)
 def format_trillions(value):
@@ -133,6 +134,9 @@ async def cdc(ctx):
         # Print CDC total and percentage
         message += f"\n**⚠️ Total CDC Holdings: {format_trillions(cdc_total)} CAW**"
         message += f"\n**📈 Percentage of Total Supply: {cdc_percentage:.4f}%**"
+
+        # Print individual GATE.IO balance
+        message += f"- **GATE.IO :** {format_trillions(balance)} CAW\n"
 
         # Add CAW Market Cap
         if caw_market_cap is not None:
