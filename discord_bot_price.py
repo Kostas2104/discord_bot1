@@ -71,7 +71,7 @@ Use `!helpme` anytime to see this list again.
     await ctx.send(help_message)
 
 # 📌 CDC Wallet Titles (excluding Burn)
-CDC_WALLET_TITLES = ["wallet_3da3", "wallet_677f", "wallet_825b", "wallet_7fc6"]
+CDC_WALLET_TITLES = ["wallet_3da3", "wallet_677f", "wallet_825b", "wallet_7fc6", "wallet_92Fe"]
 MC_TITLE = "Market Cap"
 
 # 📌 Format number to Trillions (T)
