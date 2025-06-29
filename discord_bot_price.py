@@ -73,7 +73,7 @@ Use `!helpme` anytime to see this list again.
 # 📌 CDC Wallet Titles (excluding Burn)
 CDC_WALLET_TITLES = ["wallet_3da3", "wallet_677f", "wallet_825b", "wallet_7fc6"]
 MC_TITLE = "Market Cap"
-GATE_IO_TITLE = "wallet_92Fe"
+GATE_IO_TITLE = ["wallet_92Fe"]
 
 # 📌 Format number to Trillions (T)
 def format_trillions(value):
