@@ -136,7 +136,8 @@ async def cdc(ctx):
         message += f"\n**📈 Percentage of Total Supply: {cdc_percentage:.4f}%**"
 
         # Print individual GATE.IO balance
-        message += f"-\n**GATE.IO :** {format_trillions(gateio_balances)} CAW\n"
+        for title, balance in zip(GATE_IO_TITLE, gateio_balances):
+            message += f"-\n*{title}:** {format_trillions(balance)} CAW\n"
 
         # Add CAW Market Cap
         if caw_market_cap is not None:
