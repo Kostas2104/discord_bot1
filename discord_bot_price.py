@@ -159,8 +159,7 @@ async def cdc(ctx):
 
 # 📊 Compare CDC Wallets
 @bot.command()
-async 
-def get_gateio_caw_data():
+async def get_gateio_caw_data():
     """Retrieves the ask and bid price of CAW/USDT from Gate.io with 11 decimal places."""
     base_url = "https://api.gateio.ws/api/v4"
     currency_pair = "CAW_USDT"
