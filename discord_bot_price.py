@@ -6,6 +6,8 @@ from discord.ext import commands
 from get_balances import get_caw_balances
 from datetime import datetime
 import logging
+
+
 logging.getLogger('discord.gateway').setLevel(logging.WARNING)
 
 
@@ -157,30 +159,7 @@ async def cdc(ctx):
 
 # 📊 Compare CDC Wallets
 @bot.command()
-async def compare_cdc_last10(ctx):
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT date, wallet_3da3, wallet_667, wallet_825b, sum FROM caw_cdc
-        ORDER BY date DESC
-        LIMIT 10
-    """)
-
-    records = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    message = "**📊 Last 10 CDC Wallet Records:**\n"
-    message += "```\nDate        | 3DA3          | 667F          | 825B          | Sum           \n"
-    message += "-----------------------------------------------------------\n"
-    for record in records:
-        date, w3da3, w667f, w825b, total = record
-        message += f"{date} | {format_trillions(w3da3):<13} | {format_trillions(w667f):<13} | {format_trillions(w825b):<13} | {format_trillions(total):<13}\n"
-    message += "```"
-
-    await ctx.send(message)
-
+async 
 def get_gateio_caw_data():
     """Retrieves the ask and bid price of CAW/USDT from Gate.io with 11 decimal places."""
     base_url = "https://api.gateio.ws/api/v4"
