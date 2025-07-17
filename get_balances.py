@@ -1,7 +1,7 @@
 import requests
 import os 
 from config import CAW_CONTRACT_ADDRESS, CAW_ADDRESSES, GATE_IO_ADDRESSES
-import time
+
 
 
 API_KEY_CRONOSCAN = os.getenv("API_KEY_CRONOSCAN")  # CoinMarketCap API Key
@@ -21,7 +21,6 @@ ADDRESS_TITLES = [
 def get_token_balance(address):
     api_url = f"https://api.cronoscan.com/api?module=account&action=tokenbalance&contractaddress={CAW_CONTRACT_ADDRESS}&address={address}&tag=latest&apikey={API_KEY_CRONOSCAN}"
     try:
-        time.sleep(2)
         response = requests.get(api_url)
         response.raise_for_status()
         data = response.json()
