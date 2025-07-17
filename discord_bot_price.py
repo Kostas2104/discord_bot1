@@ -5,11 +5,6 @@ import psycopg2
 from discord.ext import commands
 from get_balances import get_caw_balances
 from datetime import datetime
-import logging
-
-
-logging.getLogger('discord.gateway').setLevel(logging.WARNING)
-
 
 TOKEN = os.getenv("TOKEN")  # Discord Bot Token
 CMC_API_KEY = os.getenv("CMC_API_KEY")  # CoinMarketCap API Key
