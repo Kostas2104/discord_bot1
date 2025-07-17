@@ -119,7 +119,6 @@ async def get_caw_market_cap():
         print(f"An unexpected error occurred while fetching market cap: {e}")
         return None
 # 📌 Get Crypto Balances for CDC Wallets and Save to Database
-@bot.command()
 async def cdc(ctx):
     cdc_balances, burn_balance, cdc_total, cdc_percentage, gateio_balances = get_caw_balances()
     caw_market_cap = await get_caw_market_cap() # Fetch market cap
