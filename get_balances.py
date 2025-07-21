@@ -2,8 +2,6 @@ import requests
 import os 
 from config import CAW_CONTRACT_ADDRESS, CAW_ADDRESSES, GATE_IO_ADDRESSES
 
-
-
 API_KEY_CRONOSCAN = os.getenv("API_KEY_CRONOSCAN")  # CoinMarketCap API Key
 
 DECIMALS = 18
