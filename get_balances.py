@@ -1,6 +1,7 @@
 import requests
 import os 
 from config import CAW_CONTRACT_ADDRESS, CAW_ADDRESSES, GATE_IO_ADDRESSES
+import time
 
 API_KEY_CRONOSCAN = os.getenv("API_KEY_CRONOSCAN")  # CoinMarketCap API Key
 
@@ -23,7 +24,7 @@ def get_token_balance(address):
         response.raise_for_status()
         data = response.json()
         if data["status"] == "1":
-            usleep(700000);
+            time.sleep(0.7)
             return int(data["result"]) / 10**DECIMALS            
         else:
             print(f"Error fetching balance for {address}: {data['message']}")
