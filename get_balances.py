@@ -24,6 +24,7 @@ def get_token_balance(address):
         data = response.json()
         if data["status"] == "1":
             return int(data["result"]) / 10**DECIMALS
+            usleep(700000); // 0.7 seconds delay
         else:
             print(f"Error fetching balance for {address}: {data['message']}")
             return 0  # Return 0 to avoid sum errors
